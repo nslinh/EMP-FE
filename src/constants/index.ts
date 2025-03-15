@@ -11,15 +11,16 @@ export const ATTENDANCE_STATUS = {
 } as const;
 
 export const LEAVE_TYPES = {
-  ANNUAL: 'annual',
-  SICK: 'sick',
-  UNPAID: 'unpaid',
+  annual: 'Annual Leave',
+  sick: 'Sick Leave',
+  unpaid: 'Unpaid Leave',
 } as const;
 
 export const LEAVE_STATUS = {
-  PENDING: 'pending',
-  APPROVED: 'approved',
-  REJECTED: 'rejected',
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  cancelled: 'Cancelled',
 } as const;
 
 export const NOTIFICATION_TYPES = {

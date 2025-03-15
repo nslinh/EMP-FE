@@ -54,15 +54,19 @@ export interface Attendance {
   updatedAt: string;
 }
 
+export type LeaveType = 'annual' | 'sick' | 'unpaid';
+
+export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
+
 export interface Leave {
   id: string;
   employeeId: string;
+  employeeName: string;
+  type: LeaveType;
   startDate: string;
   endDate: string;
-  type: 'annual' | 'sick' | 'unpaid';
   reason: string;
-  status: 'pending' | 'approved' | 'rejected';
-  approvedBy?: string;
+  status: LeaveStatus;
   createdAt: string;
   updatedAt: string;
 }
