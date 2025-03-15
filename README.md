@@ -52,3 +52,12 @@ export default tseslint.config({
   },
 })
 ```
+
+
+ssh-keygen -t ed25519 -C "nslinh2022@gmail.com " -f ~/.ssh/id_ed25519_nslinh
+
+npx tailwindcss init -p
+npm install -D tailwindcss postcss autoprefixer 
+npx tailwindcss init -p 
+npm install -D tailwindcss postcss autoprefixer 
+npx tailwindcss init -p
