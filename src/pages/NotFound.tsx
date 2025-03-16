@@ -1,33 +1,63 @@
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const NotFound = () => {
+  const navigate = useNavigate();
+
   return (
-    <main className="grid min-h-[calc(100vh-64px)] place-items-center bg-white px-6 py-24 sm:py-32 lg:px-8">
-      <div className="text-center">
-        <p className="text-base font-semibold text-primary-600">404</p>
-        <h1 className="mt-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-          Page not found
-        </h1>
-        <p className="mt-6 text-base leading-7 text-gray-600">
-          Sorry, we couldn't find the page you're looking for.
-        </p>
-        <div className="mt-10 flex items-center justify-center gap-x-6">
-          <Link
-            to="/dashboard"
-            className="rounded-md bg-primary-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
+    <div className="flex min-h-screen flex-col items-center justify-center bg-white dark:bg-gray-900">
+      <div className="mx-auto max-w-xl px-4 py-8 text-center">
+        {/* 404 Image or Icon */}
+        <div className="mb-8 text-primary-600 dark:text-primary-400">
+          <svg
+            className="mx-auto h-32 w-32"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
           >
-            Go back to dashboard
-          </Link>
-          <Link
-            to="/"
-            className="text-sm font-semibold text-gray-900"
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+
+        {/* Error Message */}
+        <div className="mb-8">
+          <h1 className="mb-4 text-6xl font-bold text-gray-900 dark:text-white">
+            404
+          </h1>
+          <h2 className="mb-2 text-2xl font-semibold text-gray-900 dark:text-white">
+            Page Not Found
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400">
+            Sorry, we couldn't find the page you're looking for. Perhaps you've
+            mistyped the URL? Be sure to check your spelling.
+          </p>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+          <button
+            type="button"
+            onClick={() => navigate('/')}
+            className="btn btn-primary"
           >
-            Go home <span aria-hidden="true">&rarr;</span>
-          </Link>
+            Go back home
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate(-1)}
+            className="btn btn-secondary"
+          >
+            Go back
+          </button>
         </div>
       </div>
-    </main>
+    </div>
   );
 };
 
-export default NotFound; 
+export default NotFound;

@@ -1,185 +1,352 @@
 import { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { useMutation } from '@tanstack/react-query';
+import { useSelector } from 'react-redux';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
-import { RootState, User } from '../../types';
-import { setUser } from '../../store/slices/authSlice';
+import { RootState } from '../../app/store';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+
+interface UploadResponse {
+  url: string;
+}
+
+interface ProfileFormValues {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+  avatar?: string;
+}
 
 const Profile = () => {
+  const { user } = useSelector((state: RootState) => state.auth);
   const api = useApi();
-  const dispatch = useDispatch();
   const { success, error } = useNotification();
-  const user = useSelector((state: RootState) => state.auth.user);
-  const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    address: user?.address || '',
-    avatar: user?.avatar || '',
-  });
+  const queryClient = useQueryClient();
+  const [isUploading, setIsUploading] = useState(false);
 
   const updateProfileMutation = useMutation({
-    mutationFn: (data: typeof formData) => api.put<{ data: User }>('/auth/profile', data),
-    onSuccess: (response) => {
+    mutationFn: (data: Partial<ProfileFormValues>) => api.put(`/users/${user?.id}`, data),
+    onSuccess: () => {
       success('Profile updated successfully');
-      dispatch(setUser(response.data));
-      setIsEditing(false);
+      queryClient.invalidateQueries({ queryKey: ['user'] });
     },
     onError: (err: any) => {
       error(err.message || 'Failed to update profile');
     },
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await updateProfileMutation.mutateAsync(formData);
+  const formik = useFormik<ProfileFormValues>({
+    initialValues: {
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: '',
+      address: '',
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
+    validationSchema: Yup.object({
+      name: Yup.string().required('Name is required'),
+      email: Yup.string()
+        .email('Invalid email address')
+        .required('Email is required'),
+      phone: Yup.string(),
+      address: Yup.string(),
+      currentPassword: Yup.string().when('newPassword', {
+        is: (val: string) => val && val.length > 0,
+        then: (schema) => schema.required('Current password is required'),
+      }),
+      newPassword: Yup.string()
+        .min(6, 'Password must be at least 6 characters')
+        .when('currentPassword', {
+          is: (val: string) => val && val.length > 0,
+          then: (schema) => schema.required('New password is required'),
+        }),
+      confirmPassword: Yup.string().when('newPassword', {
+        is: (val: string) => val && val.length > 0,
+        then: (schema) =>
+          schema
+            .required('Please confirm your password')
+            .oneOf([Yup.ref('newPassword')], 'Passwords must match'),
+      }),
+    }),
+    onSubmit: async (values) => {
+      try {
+        await updateProfileMutation.mutateAsync(values);
+      } catch (err) {
+        // Error is handled by the mutation
+      }
+    },
+  });
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post<UploadResponse>('/upload', formData);
+      await updateProfileMutation.mutateAsync({ avatar: response.url });
+    } catch (err: any) {
+      error(err.message || 'Failed to upload avatar');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="space-y-10 divide-y divide-gray-900/10">
-        <div className="grid grid-cols-1 gap-x-8 gap-y-8 pt-10 md:grid-cols-3">
-          <div className="px-4 sm:px-0">
-            <h2 className="text-base font-semibold leading-7 text-gray-900">Profile</h2>
-            <p className="mt-1 text-sm leading-6 text-gray-600">
-              This information will be displayed publicly so be careful what you share.
-            </p>
-          </div>
+    <div className="main-container">
+      {/* Page Header */}
+      <div className="page-header">
+        <h1 className="page-title">Profile Settings</h1>
+        <p className="page-description">
+          Manage your account settings and preferences.
+        </p>
+      </div>
 
-          <form
-            onSubmit={handleSubmit}
-            className="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl md:col-span-2"
-          >
-            <div className="px-4 py-6 sm:p-8">
-              <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-                <div className="col-span-full flex items-center gap-x-8">
+      <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {/* Profile Picture Section */}
+        <div className="lg:col-span-1">
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Profile Picture</h3>
+            </div>
+            <div className="card-body">
+              <div className="flex flex-col items-center">
+                <div className="relative">
                   <img
-                    src={formData.avatar || 'https://via.placeholder.com/100'}
-                    alt=""
-                    className="h-24 w-24 flex-none rounded-lg bg-gray-800 object-cover"
+                    src={user?.avatar || 'https://via.placeholder.com/150'}
+                    alt={user?.name}
+                    className="h-32 w-32 rounded-full object-cover"
                   />
-                  {isEditing && (
-                    <div>
-                      <input
-                        type="text"
-                        value={formData.avatar}
-                        onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
-                        placeholder="Avatar URL"
-                        className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6"
-                      />
-                      <p className="mt-2 text-xs text-gray-500">
-                        Enter the URL of your profile picture
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="sm:col-span-3">
                   <label
-                    htmlFor="name"
-                    className="block text-sm font-medium leading-6 text-gray-900"
+                    htmlFor="avatar-upload"
+                    className="absolute bottom-0 right-0 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-primary-600 text-white hover:bg-primary-700"
                   >
-                    Name
+                    <svg
+                      className="h-4 w-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                      />
+                    </svg>
+                    <input
+                      type="file"
+                      id="avatar-upload"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleAvatarChange}
+                      disabled={isUploading}
+                    />
                   </label>
-                  <div className="mt-2">
+                </div>
+                <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                  {isUploading ? 'Uploading...' : 'Click to upload new picture'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Profile Information Form */}
+        <div className="lg:col-span-2">
+          <form onSubmit={formik.handleSubmit} className="space-y-8">
+            {/* Personal Information */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Personal Information</h3>
+              </div>
+              <div className="card-body">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="name"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Full Name
+                    </label>
                     <input
                       type="text"
                       id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      disabled={!isEditing}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 sm:text-sm sm:leading-6"
+                      {...formik.getFieldProps('name')}
+                      className={`input-field ${
+                        formik.touched.name && formik.errors.name
+                          ? 'border-red-500'
+                          : ''
+                      }`}
                     />
+                    {formik.touched.name && formik.errors.name && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formik.errors.name}
+                      </p>
+                    )}
                   </div>
-                </div>
 
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="email"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
-                    Email address
-                  </label>
-                  <div className="mt-2">
+                  <div>
+                    <label
+                      htmlFor="email"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Email Address
+                    </label>
                     <input
                       type="email"
                       id="email"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      disabled={!isEditing}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 sm:text-sm sm:leading-6"
+                      {...formik.getFieldProps('email')}
+                      className={`input-field ${
+                        formik.touched.email && formik.errors.email
+                          ? 'border-red-500'
+                          : ''
+                      }`}
                     />
+                    {formik.touched.email && formik.errors.email && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formik.errors.email}
+                      </p>
+                    )}
                   </div>
-                </div>
 
-                <div className="sm:col-span-3">
-                  <label
-                    htmlFor="phone"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
-                    Phone number
-                  </label>
-                  <div className="mt-2">
+                  <div>
+                    <label
+                      htmlFor="phone"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Phone Number
+                    </label>
                     <input
                       type="tel"
                       id="phone"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      disabled={!isEditing}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 sm:text-sm sm:leading-6"
+                      {...formik.getFieldProps('phone')}
+                      className="input-field"
                     />
                   </div>
-                </div>
 
-                <div className="col-span-full">
-                  <label
-                    htmlFor="address"
-                    className="block text-sm font-medium leading-6 text-gray-900"
-                  >
-                    Address
-                  </label>
-                  <div className="mt-2">
-                    <textarea
+                  <div>
+                    <label
+                      htmlFor="address"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Address
+                    </label>
+                    <input
+                      type="text"
                       id="address"
-                      rows={3}
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      disabled={!isEditing}
-                      className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 disabled:bg-gray-50 disabled:text-gray-500 disabled:ring-gray-200 sm:text-sm sm:leading-6"
+                      {...formik.getFieldProps('address')}
+                      className="input-field"
                     />
                   </div>
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-x-6 border-t border-gray-900/10 px-4 py-4 sm:px-8">
-              {isEditing ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditing(false)}
-                    className="text-sm font-semibold leading-6 text-gray-900"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={updateProfileMutation.isPending}
-                    className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-                  >
-                    {updateProfileMutation.isPending ? 'Saving...' : 'Save'}
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600"
-                >
-                  Edit
-                </button>
-              )}
+
+            {/* Change Password */}
+            <div className="card">
+              <div className="card-header">
+                <h3 className="card-title">Change Password</h3>
+              </div>
+              <div className="card-body">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                  <div>
+                    <label
+                      htmlFor="currentPassword"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Current Password
+                    </label>
+                    <input
+                      type="password"
+                      id="currentPassword"
+                      {...formik.getFieldProps('currentPassword')}
+                      className={`input-field ${
+                        formik.touched.currentPassword &&
+                        formik.errors.currentPassword
+                          ? 'border-red-500'
+                          : ''
+                      }`}
+                    />
+                    {formik.touched.currentPassword &&
+                      formik.errors.currentPassword && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formik.errors.currentPassword}
+                        </p>
+                      )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="newPassword"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="newPassword"
+                      {...formik.getFieldProps('newPassword')}
+                      className={`input-field ${
+                        formik.touched.newPassword && formik.errors.newPassword
+                          ? 'border-red-500'
+                          : ''
+                      }`}
+                    />
+                    {formik.touched.newPassword && formik.errors.newPassword && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {formik.errors.newPassword}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="confirmPassword"
+                      className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                    >
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      {...formik.getFieldProps('confirmPassword')}
+                      className={`input-field ${
+                        formik.touched.confirmPassword &&
+                        formik.errors.confirmPassword
+                          ? 'border-red-500'
+                          : ''
+                      }`}
+                    />
+                    {formik.touched.confirmPassword &&
+                      formik.errors.confirmPassword && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formik.errors.confirmPassword}
+                        </p>
+                      )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={updateProfileMutation.isPending}
+                className="btn btn-primary"
+              >
+                {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
           </form>
         </div>
@@ -188,4 +355,4 @@ const Profile = () => {
   );
 };
 
-export default Profile; 
+export default Profile;
