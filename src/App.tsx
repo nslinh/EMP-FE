@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { RootState } from './app/store';
-import { Toaster } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 // Layouts
@@ -58,7 +58,7 @@ const App = () => {
         {/* Catch all route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <Toaster position="top-right" />
+      <ToastContainer position="top-right" />
     </Router>
   );
 };
