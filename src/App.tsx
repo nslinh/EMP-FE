@@ -34,6 +34,7 @@ const App = () => {
 
         {/* Protected routes */}
         <Route
+          path="/"
           element={
             isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" />
           }
