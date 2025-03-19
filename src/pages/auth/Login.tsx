@@ -43,6 +43,7 @@ const Login = () => {
       try {
         setIsLoading(true);
         const data = await api.post<LoginResponse>('/auth/login', values);
+        console.log("onSubmit", data)
         dispatch(loginSuccess(data));
         navigate('/');
       } catch (err: any) {
