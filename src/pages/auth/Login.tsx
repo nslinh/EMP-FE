@@ -60,7 +60,7 @@ const Login = () => {
         <div className="text-center">
           <img
             className="mx-auto h-12 w-auto"
-            src="/logo.png"
+            src="https://static.vecteezy.com/system/resources/previews/009/170/419/non_2x/a-unique-design-icon-of-employee-management-vector.jpg"
             alt="Your Company"
           />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900 dark:text-white">

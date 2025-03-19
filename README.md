@@ -54,7 +54,18 @@ export default tseslint.config({
 ```
 
 
-ssh-keygen -t ed25519 -C "nslinh2022@gmail.com " -f ~/.ssh/id_ed25519_nslinh
+ssh-keygen -t ed25519 -C "nslinh2022@gmail.com" -f ~/.ssh/id_ed25519_nslinh
+ssh-keygen -t rsa -b 4096 -C "nslinh2022@gmail.com" -f ~/.ssh/id_nslinh
+
+eval "$(ssh-agent -s)"
+
+ssh-add --apple-use-keychain ~/.ssh/id_nslinh
+pbcopy < ~/.ssh/id_nslinh.pub
+
+Them ssh vao local repo
+ssh-add ~/.ssh/id_nslinh
+push
+
 
 npx tailwindcss init -p
 npm install -D tailwindcss postcss autoprefixer 
