@@ -1,23 +1,15 @@
-import { Key, useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
 import EmployeeForm from './EmployeeForm';
 import { DeleteConfirmation } from '../../components/DeleteConfirmation';
-import { User, PaginatedResponse } from '../../types';
-
-interface ExtendedUser extends User {
-  status: 'Active' | 'Inactive';
-  department: string;
-  _id: Key | null
-}
-
-interface EmployeesResponse extends PaginatedResponse<ExtendedUser> {
-  from: number;
-  to: number;
-  hasNextPage: boolean;
-  employees: ExtendedUser[]
-}
+import { Employee, EmployeeResponse } from '../../types/employee';
+import { 
+  PencilIcon, 
+  TrashIcon,
+  MagnifyingGlassIcon 
+} from '@heroicons/react/24/outline';
 
 const Employees = () => {
   const api = useApi();
@@ -25,61 +17,64 @@ const Employees = () => {
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<ExtendedUser | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-
-  const { data: employeesData, isLoading } = useQuery<EmployeesResponse>({
-    queryKey: ['employees', currentPage, pageSize, searchQuery],
-    queryFn: () =>
-      api.get(`/employees?page=${currentPage}&limit=${pageSize}&search=${searchQuery}`),
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [filters, setFilters] = useState({
+    search: '',
+    department: '',
+    position: '',
+    gender: '',
+    page: 1,
+    limit: 10
   });
-  console.log("employeesDataemployeesData", employeesData)
+
+  const { data, isLoading } = useQuery<EmployeeResponse>({
+    queryKey: ['employees', filters],
+    queryFn: () => api.get('/employees', { params: filters }),
+  });
 
   const createMutation = useMutation({
-    mutationFn: (data: Partial<User>) => api.post('/employees', data),
+    mutationFn: (data: Partial<Employee>) => api.post('/employees', data),
     onSuccess: () => {
-      success('Employee created successfully');
+      success('Thêm nhân viên thành công');
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       handleCloseForm();
     },
     onError: (err: any) => {
-      error(err.message || 'Failed to create employee');
+      error(err.message || 'Thêm nhân viên thất bại');
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<User> }) =>
+    mutationFn: ({ id, data }: { id: string; data: Partial<Employee> }) =>
       api.put(`/employees/${id}`, data),
     onSuccess: () => {
-      success('Employee updated successfully');
+      success('Cập nhật nhân viên thành công');
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       handleCloseForm();
     },
     onError: (err: any) => {
-      error(err.message || 'Failed to update employee');
+      error(err.message || 'Cập nhật nhân viên thất bại');
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/employees/${id}`),
     onSuccess: () => {
-      success('Employee deleted successfully');
+      success('Xóa nhân viên thành công');
       queryClient.invalidateQueries({ queryKey: ['employees'] });
       setIsDeleteOpen(false);
     },
     onError: (err: any) => {
-      error(err.message || 'Failed to delete employee');
+      error(err.message || 'Xóa nhân viên thất bại');
     },
   });
 
-  const handleEdit = (employee: ExtendedUser) => {
+  const handleEdit = (employee: Employee) => {
     setSelectedEmployee(employee);
     setIsFormOpen(true);
   };
 
-  const handleDelete = (employee: ExtendedUser) => {
+  const handleDelete = (employee: Employee) => {
     setSelectedEmployee(employee);
     setIsDeleteOpen(true);
   };
@@ -89,10 +84,10 @@ const Employees = () => {
     setIsFormOpen(false);
   };
 
-  const handleSubmit = async (values: Partial<User>) => {
+  const handleSubmit = async (values: Partial<Employee>) => {
     if (selectedEmployee) {
       await updateMutation.mutateAsync({
-        id: selectedEmployee.id,
+        id: selectedEmployee._id,
         data: values,
       });
     } else {
@@ -101,178 +96,183 @@ const Employees = () => {
   };
 
   return (
-    <div className="main-container">
+    <div className="p-6 space-y-6">
       {/* Page Header */}
-      <div className="page-header">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="page-title">Employees</h1>
-            <p className="page-description">
-              Manage your company's employees and their information.
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setIsFormOpen(true)}
-            className="btn btn-primary"
-          >
-            Add Employee
-          </button>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Quản lý nhân viên
+          </h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Quản lý thông tin nhân viên trong công ty
+          </p>
         </div>
+        <button
+          onClick={() => setIsFormOpen(true)}
+          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+        >
+          Thêm nhân viên
+        </button>
       </div>
 
       {/* Search and Filters */}
-      <div className="mt-4 sm:flex sm:items-center sm:justify-between">
-        <div className="mt-3 sm:mt-0 sm:ml-4">
-          <label htmlFor="search" className="sr-only">
-            Search employees
-          </label>
-          <div className="relative rounded-md shadow-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative">
+            <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              name="search"
-              id="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field"
-              placeholder="Search employees..."
+              placeholder="Tìm kiếm nhân viên..."
+              value={filters.search}
+              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value, page: 1 }))}
+              className="pl-10 w-full rounded-md border-0 py-2.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-primary-600 dark:bg-gray-700 dark:text-white"
             />
           </div>
+          <select
+            value={filters.department}
+            onChange={(e) => setFilters(prev => ({ ...prev, department: e.target.value, page: 1 }))}
+            className="input-field"
+          >
+            <option value="">Tất cả phòng ban</option>
+            {/* Thêm options từ API departments */}
+          </select>
+          <select
+            value={filters.position}
+            onChange={(e) => setFilters(prev => ({ ...prev, position: e.target.value, page: 1 }))}
+            className="input-field"
+          >
+            <option value="">Tất cả chức vụ</option>
+            {/* Thêm options từ API positions */}
+          </select>
+          <select
+            value={filters.gender}
+            onChange={(e) => setFilters(prev => ({ ...prev, gender: e.target.value, page: 1 }))}
+            className="input-field"
+          >
+            <option value="">Tất cả giới tính</option>
+            <option value="male">Nam</option>
+            <option value="female">Nữ</option>
+            <option value="other">Khác</option>
+          </select>
         </div>
       </div>
 
-      {/* Employees Table */}
-      <div className="table-container">
-        <div className="table-wrapper">
-          <div className="table-inner">
-            <table className="table">
-              <thead className="table-header">
-                <tr>
-                  <th className="table-header-cell">Name</th>
-                  <th className="table-header-cell">Position</th>
-                  <th className="table-header-cell">Department</th>
-                  <th className="table-header-cell">Status</th>
-                  <th className="table-header-cell">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="table-body">
-                {employeesData?.employees?.map((employee: ExtendedUser) => (
-                  <tr key={employee?._id} className="table-row">
-                    <td className="table-cell">
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          <img
-                            className="h-10 w-10 rounded-full"
-                            src={employee.avatar || 'https://img.freepik.com/free-vector/businessman-character-avatar-isolated_24877-60111.jpg?semt=ais_hybrid'}
-                            alt=""
-                          />
-                        </div>
-                        <div className="ml-4">
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {employee.name}
-                          </div>
-                          <div className="text-gray-500 dark:text-gray-400">
-                            {employee.email}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="table-cell">{employee.position}</td>
-                    <td className="table-cell">{employee.department}</td>
-                    <td className="table-cell">
-                      <span className={`badge ${employee.status === 'Active' ? 'badge-success' : 'badge-gray'}`}>
-                        {employee.status}
-                      </span>
-                    </td>
-                    <td className="table-cell">
-                      <div className="flex items-center gap-4">
-                        <button
-                          type="button"
-                          onClick={() => handleEdit(employee)}
-                          className="btn btn-secondary btn-sm"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(employee)}
-                          className="btn btn-danger btn-sm"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Họ tên
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Email
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Phòng ban
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Chức vụ
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Thao tác
+              </th>
+            </tr>
+          </thead>
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+            {data?.employees.map((employee) => (
+              <tr key={employee._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                  {employee.fullName}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {employee.userId.email}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {employee.department.name}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                  {employee.position}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <button
+                    onClick={() => handleEdit(employee)}
+                    className="text-primary-600 hover:text-primary-900 dark:hover:text-primary-400 mr-4"
+                  >
+                    <PencilIcon className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(employee)}
+                    className="text-red-600 hover:text-red-900 dark:hover:text-red-400"
+                  >
+                    <TrashIcon className="h-5 w-5" />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination */}
-      <div className="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800 sm:px-6">
-        <div className="flex flex-1 justify-between sm:hidden">
+      <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between rounded-lg shadow sm:px-6">
+        <div className="flex-1 flex justify-between sm:hidden">
           <button
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            disabled={currentPage === 1}
-            className="btn btn-secondary"
+            disabled={data?.pagination.page === 1}
+            onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+            className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
           >
-            Previous
+            Trước
           </button>
           <button
-            onClick={() => setCurrentPage((prev) => prev + 1)}
-            disabled={!employeesData?.hasNextPage}
-            className="btn btn-secondary"
+            disabled={data?.pagination.page === data?.pagination.totalPages}
+            onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+            className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
           >
-            Next
+            Sau
           </button>
         </div>
-        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700 dark:text-gray-300">
-              Showing <span className="font-medium">{employeesData?.from || 0}</span> to{' '}
-              <span className="font-medium">{employeesData?.to || 0}</span> of{' '}
-              <span className="font-medium">{employeesData?.total || 0}</span> results
+              Trang <span className="font-medium">{data?.pagination.page}</span> / <span className="font-medium">{data?.pagination.totalPages}</span>
             </p>
           </div>
           <div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm">
+            <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
               <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="btn btn-secondary"
+                disabled={data?.pagination.page === 1}
+                onClick={() => setFilters(prev => ({ ...prev, page: prev.page - 1 }))}
+                className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
-                Previous
+                Trước
               </button>
               <button
-                onClick={() => setCurrentPage((prev) => prev + 1)}
-                disabled={!employeesData?.hasNextPage}
-                className="btn btn-secondary"
+                disabled={data?.pagination.page === data?.pagination.totalPages}
+                onClick={() => setFilters(prev => ({ ...prev, page: prev.page + 1 }))}
+                className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
               >
-                Next
+                Sau
               </button>
             </nav>
           </div>
         </div>
       </div>
 
-      {/* Employee Form Modal */}
+      {/* Modals */}
       <EmployeeForm
         open={isFormOpen}
         employee={selectedEmployee}
         onClose={handleCloseForm}
         onSubmit={handleSubmit}
       />
-
-      {/* Delete Confirmation Modal */}
+      
       <DeleteConfirmation
         open={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
-        onConfirm={() => selectedEmployee && deleteMutation.mutate(selectedEmployee.id)}
-        title="Delete Employee"
-        message={`Are you sure you want to delete ${selectedEmployee?.name}? This action cannot be undone.`}
-        isDeleting={deleteMutation.isPending}
+        onConfirm={() => selectedEmployee && deleteMutation.mutate(selectedEmployee._id)}
+        title="Xóa nhân viên"
+        message={`Bạn có chắc chắn muốn xóa nhân viên ${selectedEmployee?.fullName}?`}
       />
     </div>
   );

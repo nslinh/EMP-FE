@@ -9,6 +9,8 @@ import {
   UserCircleIcon,
   XMarkIcon,
   Bars3Icon,
+  ChartBarIcon,
+  ListBulletIcon,
 } from '@heroicons/react/24/outline';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,6 +24,8 @@ const navigation = [
   { name: 'Attendance', href: '/attendance', icon: ClockIcon },
   { name: 'Salary', href: '/salary', icon: CurrencyDollarIcon, adminOnly: true },
   { name: 'Profile', href: '/profile', icon: UserCircleIcon },
+  { name: 'Reports', href: '/reports', icon: ChartBarIcon },
+  { name: 'Activity Logs', href: '/activity-logs', icon: ListBulletIcon },
 ];
 
 const DashboardLayout = () => {

@@ -94,7 +94,7 @@ export const API_ENDPOINTS = {
     MARK_READ: (id: string) => `/notifications/${id}/read`,
   },
   ACTIVITY_LOGS: {
-    BASE: '/activity-logs',
+    BASE: '/logs',
   },
 } as const;
 
