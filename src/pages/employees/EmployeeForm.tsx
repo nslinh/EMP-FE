@@ -20,10 +20,6 @@ interface Department {
   name: string;
 }
 
-interface DepartmentsResponse {
-  data: Department[];
-}
-
 const validationSchema = Yup.object({
   name: Yup.string().required('Name is required'),
   email: Yup.string().email('Invalid email').required('Email is required'),
@@ -47,7 +43,7 @@ const EmployeeForm = ({ open, employee, onClose, onSubmit }: EmployeeFormProps) 
     multiple: false,
   });
 
-  const { data: departments } = useQuery<DepartmentsResponse>({
+  const { data: departments } = useQuery< Department[]>({
     queryKey: ['departments'],
     queryFn: () => api.get('/departments'),
   });
@@ -263,7 +259,7 @@ const EmployeeForm = ({ open, employee, onClose, onSubmit }: EmployeeFormProps) 
                                 } focus:ring-2 focus:ring-inset focus:ring-primary-600 sm:text-sm sm:leading-6`}
                               >
                                 <option value="">Select department</option>
-                                {departments?.data.map((dept) => (
+                                {departments?.map((dept) => (
                                   <option key={dept.id} value={dept.id}>
                                     {dept.name}
                                   </option>

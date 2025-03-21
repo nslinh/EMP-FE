@@ -62,11 +62,7 @@ const Profile = () => {
         then: (schema) => schema.required('Current password is required'),
       }),
       newPassword: Yup.string()
-        .min(6, 'Password must be at least 6 characters')
-        .when('currentPassword', {
-          is: (val: string) => val && val.length > 0,
-          then: (schema) => schema.required('New password is required'),
-        }),
+        .min(6, 'Password must be at least 6 characters'),
       confirmPassword: Yup.string().when('newPassword', {
         is: (val: string) => val && val.length > 0,
         then: (schema) =>
@@ -122,7 +118,7 @@ const Profile = () => {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img
-                    src={user?.avatar || 'https://via.placeholder.com/150'}
+                    src={user?.avatar || 'https://img.freepik.com/free-psd/3d-render-avatar-character_23-2150611731.jpg?semt=ais_hybrid'}
                     alt={user?.name}
                     className="h-32 w-32 rounded-full object-cover"
                   />

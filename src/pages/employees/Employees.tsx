@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Key, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
@@ -9,12 +9,14 @@ import { User, PaginatedResponse } from '../../types';
 interface ExtendedUser extends User {
   status: 'Active' | 'Inactive';
   department: string;
+  _id: Key | null
 }
 
 interface EmployeesResponse extends PaginatedResponse<ExtendedUser> {
   from: number;
   to: number;
   hasNextPage: boolean;
+  employees: ExtendedUser[]
 }
 
 const Employees = () => {
@@ -33,6 +35,7 @@ const Employees = () => {
     queryFn: () =>
       api.get(`/employees?page=${currentPage}&limit=${pageSize}&search=${searchQuery}`),
   });
+  console.log("employeesDataemployeesData", employeesData)
 
   const createMutation = useMutation({
     mutationFn: (data: Partial<User>) => api.post('/employees', data),
@@ -153,14 +156,14 @@ const Employees = () => {
                 </tr>
               </thead>
               <tbody className="table-body">
-                {employeesData?.data.map((employee: ExtendedUser) => (
-                  <tr key={employee.id} className="table-row">
+                {employeesData?.employees?.map((employee: ExtendedUser) => (
+                  <tr key={employee?._id} className="table-row">
                     <td className="table-cell">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
                           <img
                             className="h-10 w-10 rounded-full"
-                            src={employee.avatar || 'https://via.placeholder.com/40'}
+                            src={employee.avatar || 'https://img.freepik.com/free-vector/businessman-character-avatar-isolated_24877-60111.jpg?semt=ais_hybrid'}
                             alt=""
                           />
                         </div>

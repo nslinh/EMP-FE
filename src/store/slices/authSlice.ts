@@ -27,6 +27,9 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
+    setUser: (state, action: PayloadAction<{user: User}>) => {
+      state.user = action.payload.user
+    },
     loginStart: (state) => {
       state.loading = true;
       state.error = null;
@@ -52,7 +55,6 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
-      
       // Xóa thông tin khỏi localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -60,5 +62,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout } = authSlice.actions;
+export const { setUser, loginStart, loginSuccess, loginFailure, logout } = authSlice.actions;
 export default authSlice.reducer; 

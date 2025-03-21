@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
 import { RootState, User } from '../../types';
@@ -11,7 +11,6 @@ const Settings = () => {
   const api = useApi();
   const dispatch = useDispatch();
   const { success, error } = useNotification();
-  const queryClient = useQueryClient();
   const user = useSelector((state: RootState) => state.auth.user);
   const theme = useSelector((state: RootState) => state.theme.mode);
   const [isEditing, setIsEditing] = useState(false);

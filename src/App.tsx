@@ -20,7 +20,6 @@ import NotFound from './pages/NotFound';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
-
   return (
     <Router>
       <Routes>

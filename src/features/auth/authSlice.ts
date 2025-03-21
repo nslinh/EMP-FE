@@ -6,6 +6,7 @@ interface User {
   name: string;
   role: 'admin' | 'employee';
   departmentId?: string;
+  avatar?: string 
 }
 
 interface AuthState {
@@ -33,7 +34,6 @@ const authSlice = createSlice({
       state.error = null;
     },
     loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
-      console.log("loginSuccess -- actionaction", action)
       state.loading = false;
       state.isAuthenticated = true;
       state.user = action.payload.user;

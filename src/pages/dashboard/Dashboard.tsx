@@ -2,14 +2,6 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../app/store';
 import { useQuery } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
-import { formatCurrency } from '../../utils/number';
-import { formatDate } from '../../utils/date';
-import {
-  UsersIcon,
-  BuildingOfficeIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-} from '@heroicons/react/24/outline';
 
 interface DashboardStats {
   totalEmployees: number;
@@ -27,6 +19,10 @@ interface DashboardStats {
     name: string;
     employeeCount: number;
   }>;
+  attendanceRate: any,
+  onLeave: any,
+  leaveRate: any,
+  locations: any,
 }
 
 const Dashboard = () => {
@@ -38,37 +34,10 @@ const Dashboard = () => {
     queryFn: () => api.get('/dashboard/stats'),
   });
 
-  const { data: recentActivities } = useQuery({
+  const { data: recentActivities } = useQuery<any[]>({
     queryKey: ['recent-activities'],
     queryFn: () => api.get('/activities/recent'),
   });
-
-  const cards = [
-    {
-      name: 'Total Employees',
-      value: stats?.totalEmployees || 0,
-      icon: UsersIcon,
-      color: 'bg-blue-500',
-    },
-    {
-      name: 'Departments',
-      value: stats?.totalDepartments || 0,
-      icon: BuildingOfficeIcon,
-      color: 'bg-green-500',
-    },
-    {
-      name: 'Present Today',
-      value: stats?.presentToday || 0,
-      icon: ClockIcon,
-      color: 'bg-yellow-500',
-    },
-    {
-      name: 'Total Salary',
-      value: formatCurrency(stats?.totalSalaryThisMonth || 0),
-      icon: CurrencyDollarIcon,
-      color: 'bg-purple-500',
-    },
-  ];
 
   if (isLoading) {
     return (
@@ -140,7 +109,7 @@ const Dashboard = () => {
                 {recentActivities?.map((activity: any, index: number) => (
                   <li key={activity.id}>
                     <div className="relative pb-8">
-                      {index !== recentActivities.length - 1 && (
+                      {index !== recentActivities?.length - 1 && (
                         <span
                           className="absolute left-5 top-5 -ml-px h-full w-0.5 bg-gray-200 dark:bg-gray-700"
                           aria-hidden="true"
