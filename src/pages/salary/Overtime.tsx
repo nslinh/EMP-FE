@@ -190,26 +190,24 @@ const Overtime = () => {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng yêu cầu</h3>
-            <p className="mt-2 text-3xl font-semibold">{data?.requests.length || 0}</p>
+            <p className="mt-2 text-3xl font-semibold">{data?.summary?.totalRequests || 0}</p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Đã duyệt</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.requests.filter(r => r.status === 'approved').length || 0}
+              {data?.summary?.approvedRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Chờ duyệt</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.requests.filter(r => r.status === 'pending').length || 0}
+              {data?.summary?.pendingRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng giờ tăng ca</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.requests
-                .filter(r => r.status === 'approved')
-                .reduce((sum, r) => sum + r.requestedHours, 0) || 0}h
+              {data?.summary?.totalHours || 0}h
             </p>
           </div>
         </div>
@@ -238,8 +236,8 @@ const Overtime = () => {
                     <tr>
                       <td colSpan={isAdmin ? 7 : 5} className="text-center py-4">Đang tải...</td>
                     </tr>
-                  ) : (
-                    data?.requests.map((request) => (
+                  ) : data?.requests && data.requests.length > 0 ? (
+                    data.requests.map((request) => (
                       <tr key={request._id}>
                         {isAdmin && (
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
@@ -300,6 +298,10 @@ const Overtime = () => {
                         </td>
                       </tr>
                     ))
+                  ) : (
+                    <tr>
+                      <td colSpan={isAdmin ? 7 : 5} className="text-center py-4">Không có dữ liệu</td>
+                    </tr>
                   )}
                 </tbody>
               </table>
