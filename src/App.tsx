@@ -16,7 +16,7 @@ import Departments from './pages/departments/Departments';
 import Attendance from './pages/attendance/Attendance';
 import EmployeeAttendance from './pages/attendance/EmployeeAttendance';
 import LeaveRequest from './pages/attendance/LeaveRequest';
-import Salary from './pages/salary/Salary';
+import Overtime from './pages/salary/Overtime';
 import Profile from './pages/profile/Profile';
 import NotFound from './pages/NotFound';
 import Statistics from './pages/reports/Statistics';
@@ -73,10 +73,14 @@ const App = () => {
             />
           </Route>
 
-          <Route
-            path="/salary"
-            element={user?.role === 'admin' ? <Salary /> : <Navigate to="/dashboard" />}
-          />
+          {/* Salary routes */}
+          <Route path="/overtime">
+            <Route 
+              path="" 
+              element={<Overtime />} 
+            />
+          </Route>
+
           <Route path="/profile" element={<Profile />} />
 
           {/* Report routes - Chỉ admin mới truy cập được */}

@@ -22,10 +22,10 @@ const navigation = [
   { name: 'Employees', href: '/employees', icon: UsersIcon, adminOnly: true },
   { name: 'Departments', href: '/departments', icon: BuildingOfficeIcon, adminOnly: true },
   { name: 'Attendance', href: '/attendance', icon: ClockIcon },
-  { name: 'Salary', href: '/salary', icon: CurrencyDollarIcon, adminOnly: true },
+  { name: 'Overtime', href: '/overtime', icon: XMarkIcon},
   { name: 'Profile', href: '/profile', icon: UserCircleIcon },
-  { name: 'Reports', href: '/reports', icon: ChartBarIcon },
-  { name: 'Activity Logs', href: '/activity-logs', icon: ListBulletIcon },
+  { name: 'Reports', href: '/reports', icon: ChartBarIcon, adminOnly: true },
+  { name: 'Activity Logs', href: '/activity-logs', icon: ListBulletIcon, adminOnly: true },
 ];
 
 const DashboardLayout = () => {
@@ -89,19 +89,17 @@ const DashboardLayout = () => {
                                 to={item.href}
                                 className={`
                                   group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold
-                                  ${
-                                    location.pathname.startsWith(item.href)
-                                      ? 'bg-gray-50 text-primary-600'
-                                      : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                                  ${location.pathname.startsWith(item.href)
+                                    ? 'bg-gray-50 text-primary-600'
+                                    : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                                   }
                                 `}
                               >
                                 <item.icon
-                                  className={`h-6 w-6 shrink-0 ${
-                                    location.pathname.startsWith(item.href)
+                                  className={`h-6 w-6 shrink-0 ${location.pathname.startsWith(item.href)
                                       ? 'text-primary-600'
                                       : 'text-gray-400 group-hover:text-primary-600'
-                                  }`}
+                                    }`}
                                   aria-hidden="true"
                                 />
                                 {item.name}
@@ -135,19 +133,17 @@ const DashboardLayout = () => {
                         to={item.href}
                         className={`
                           group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold
-                          ${
-                            location.pathname.startsWith(item.href)
-                              ? 'bg-gray-50 text-primary-600'
-                              : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
+                          ${location.pathname.startsWith(item.href)
+                            ? 'bg-gray-50 text-primary-600'
+                            : 'text-gray-700 hover:text-primary-600 hover:bg-gray-50'
                           }
                         `}
                       >
                         <item.icon
-                          className={`h-6 w-6 shrink-0 ${
-                            location.pathname.startsWith(item.href)
+                          className={`h-6 w-6 shrink-0 ${location.pathname.startsWith(item.href)
                               ? 'text-primary-600'
                               : 'text-gray-400 group-hover:text-primary-600'
-                          }`}
+                            }`}
                           aria-hidden="true"
                         />
                         {item.name}
