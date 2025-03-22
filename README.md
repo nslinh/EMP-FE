@@ -65,6 +65,7 @@ pbcopy < ~/.ssh/id_nslinh.pub
 Them ssh vao local repo
 ssh-add ~/.ssh/id_nslinh
 push
+git remote set-url origin git@github.com:nslinh/EMP-BE.git
 
 
 npx tailwindcss init -p
