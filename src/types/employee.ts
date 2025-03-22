@@ -16,6 +16,7 @@ export interface Employee {
   };
   position: string;
   salary: string;
+  baseSalary: string;
   startDate: string;
   avatarUrl: string | null;
   overtimeRate: number;

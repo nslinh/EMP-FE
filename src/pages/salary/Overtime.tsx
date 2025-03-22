@@ -81,7 +81,7 @@ const Overtime = () => {
   // Tính toán ngày bắt đầu và kết thúc của tháng được chọn
   const startDate = format(startOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd');
   const endDate = format(endOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd');
-  const { data, isLoading } = useQuery<OvertimeResponse>({
+  const { data, isLoading, refetch } = useQuery<OvertimeResponse>({
     queryKey: ['overtime-requests', filters, startDate, endDate, user?._id],
     queryFn: () => {
       const params: RequestParams = {
@@ -100,6 +100,7 @@ const Overtime = () => {
       success('Tạo yêu cầu làm thêm giờ thành công');
       queryClient.invalidateQueries({ queryKey: ['overtime-requests'] });
       handleCloseForm();
+      refetch();
     },
     onError: (err: any) => {
       error(err.message || 'Tạo yêu cầu thất bại');
@@ -111,6 +112,7 @@ const Overtime = () => {
     onSuccess: () => {
       success('Phê duyệt yêu cầu thành công');
       queryClient.invalidateQueries({ queryKey: ['overtime-requests'] });
+      refetch();
     },
     onError: (err: any) => {
       error(err.message || 'Phê duyệt yêu cầu thất bại');
@@ -123,6 +125,7 @@ const Overtime = () => {
       success('Xóa yêu cầu thành công');
       queryClient.invalidateQueries({ queryKey: ['overtime-requests'] });
       setIsDeleteOpen(false);
+      refetch();
     },
     onError: (err: any) => {
       error(err.message || 'Xóa yêu cầu thất bại');

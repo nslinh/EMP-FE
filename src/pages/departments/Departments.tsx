@@ -22,7 +22,7 @@ const Departments = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
 
-  const { data: departments, isLoading } = useQuery<Department[]>({
+  const { data: departments, isLoading, refetch } = useQuery<Department[]>({
     queryKey: ['departments', filters],
     queryFn: () => api.get('/departments', { params: filters })
   });
@@ -39,6 +39,7 @@ const Departments = () => {
       success('Thêm phòng ban thành công');
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       handleCloseForm();
+      refetch();
     },
     onError: (err: any) => {
       error(err.message || 'Thêm phòng ban thất bại');
@@ -52,6 +53,7 @@ const Departments = () => {
       success('Department updated successfully');
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       handleCloseForm();
+      refetch();
     },
     onError: (err: any) => {
       error(err.message || 'Failed to update department');
@@ -64,6 +66,7 @@ const Departments = () => {
       success('Department deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['departments'] });
       handleCloseDeleteConfirm();
+      refetch();
     },
     onError: (err: any) => {
       error(err.message || 'Failed to delete department');

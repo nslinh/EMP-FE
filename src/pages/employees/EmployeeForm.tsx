@@ -2,6 +2,7 @@ import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import moment from "moment";
 import { Employee } from '../../types/employee';
 import { useQuery } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
@@ -69,7 +70,7 @@ const EmployeeForm = ({ open, employee, onClose, onSubmit }: EmployeeFormProps) 
       department: employee.department._id || '',
       position: employee.position || '',
       salary: employee.baseSalary || 0,
-      startDate: employee.startDate || ''
+      startDate: moment(employee.startDate, "DD/MM/YYYY").format("YYYY-MM-DD") || ''
     } : {
       email: '',
       password: '',
