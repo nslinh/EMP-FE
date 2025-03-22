@@ -22,6 +22,7 @@ import NotFound from './pages/NotFound';
 import Statistics from './pages/reports/Statistics';
 import ActivityLogs from './pages/reports/ActivityLogs';
 import ActivityLogList from './pages/activityLog/ActivityLogList';
+import EmployeeOvertime from './pages/salary/EmployeeOvertime';
 
 const App = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
@@ -77,7 +78,11 @@ const App = () => {
           <Route path="/overtime">
             <Route 
               path="" 
-              element={<Overtime />} 
+              element={
+                user?.role === 'admin' ? 
+                <Overtime /> : 
+                <EmployeeOvertime />
+              } 
             />
           </Route>
 

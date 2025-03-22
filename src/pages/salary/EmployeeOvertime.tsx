@@ -8,14 +8,8 @@ import OvertimeForm from './OvertimeForm';
 import { DeleteConfirmation } from '../../components/DeleteConfirmation';
 import { 
   PencilIcon, 
-  TrashIcon,
-  MagnifyingGlassIcon 
+  TrashIcon
 } from '@heroicons/react/24/outline';
-
-interface User {
-  _id: string;
-  isAdmin: boolean;
-}
 
 interface OvertimeRequest {
   _id: string;
@@ -52,20 +46,11 @@ interface OvertimeResponse {
   };
 }
 
-interface RequestParams {
-  status?: string;
-  startDate?: string;
-  endDate?: string;
-  employeeId?: string;
-  page?: number;
-  limit?: number;
-}
-
-const Overtime = () => {
+const EmployeeOvertime = () => {
   const api = useApi();
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedRequest, setSelectedRequest] = useState<OvertimeRequest | null>(null);
@@ -81,16 +66,17 @@ const Overtime = () => {
   // Tính toán ngày bắt đầu và kết thúc của tháng được chọn
   const startDate = format(startOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd');
   const endDate = format(endOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd');
+
   const { data, isLoading } = useQuery<OvertimeResponse>({
     queryKey: ['overtime-requests', filters, startDate, endDate, user?._id],
     queryFn: () => {
-      const params: RequestParams = {
+      const queryString = new URLSearchParams({
         ...filters,
         startDate,
         endDate,
-        employeeId: isAdmin ? undefined : user?._id
-      };
-      return api.get('/overtime/requests', { params });
+        employeeId: user?._id || ''
+      }).toString();
+      return api.get(`/overtime/requests?${queryString}`);
     },
   });
 
@@ -103,17 +89,6 @@ const Overtime = () => {
     },
     onError: (err: any) => {
       error(err.message || 'Tạo yêu cầu thất bại');
-    },
-  });
-
-  const approveMutation = useMutation({
-    mutationFn: (id: string) => api.put(`/overtime/approve/${id}`),
-    onSuccess: () => {
-      success('Phê duyệt yêu cầu thành công');
-      queryClient.invalidateQueries({ queryKey: ['overtime-requests'] });
-    },
-    onError: (err: any) => {
-      error(err.message || 'Phê duyệt yêu cầu thất bại');
     },
   });
 
@@ -130,13 +105,13 @@ const Overtime = () => {
   });
 
   const handleEdit = (request: OvertimeRequest) => {
-    if (!isAdmin && request.employeeId._id !== user?._id) return;
+    if (request.employeeId._id !== user?._id) return;
     setSelectedRequest(request);
     setIsFormOpen(true);
   };
 
   const handleDelete = (request: OvertimeRequest) => {
-    if (!isAdmin && request.employeeId._id !== user?._id) return;
+    if (request.employeeId._id !== user?._id) return;
     setSelectedRequest(request);
     setIsDeleteOpen(true);
   };
@@ -155,7 +130,7 @@ const Overtime = () => {
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
           <h1 className="text-base font-semibold leading-6 text-gray-900">
-            Quản lý làm thêm giờ
+            Yêu cầu làm thêm giờ
           </h1>
         </div>
         <div className="mt-4 sm:ml-10 sm:mt-0 sm:flex space-x-4">
@@ -190,26 +165,24 @@ const Overtime = () => {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng yêu cầu</h3>
-            <p className="mt-2 text-3xl font-semibold">{data?.requests.length || 0}</p>
+            <p className="mt-2 text-3xl font-semibold">{data?.summary?.totalRequests || 0}</p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Đã duyệt</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.requests.filter(r => r.status === 'approved').length || 0}
+              {data?.summary?.approvedRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Chờ duyệt</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.requests.filter(r => r.status === 'pending').length || 0}
+              {data?.summary?.pendingRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng giờ tăng ca</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.requests
-                .filter(r => r.status === 'approved')
-                .reduce((sum, r) => sum + r.requestedHours, 0) || 0}h
+              {data?.summary?.totalHours || 0}h
             </p>
           </div>
         </div>
@@ -220,32 +193,22 @@ const Overtime = () => {
               <table className="min-w-full divide-y divide-gray-300">
                 <thead>
                   <tr>
-                    {isAdmin && (
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Nhân viên</th>
-                    )}
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Ngày</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Số giờ</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Lý do</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Trạng thái</th>
-                    {isAdmin && (
-                      <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Người duyệt</th>
-                    )}
+                    <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Người duyệt</th>
                     <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {isLoading ? (
                     <tr>
-                      <td colSpan={isAdmin ? 7 : 5} className="text-center py-4">Đang tải...</td>
+                      <td colSpan={6} className="text-center py-4">Đang tải...</td>
                     </tr>
-                  ) : (
-                    data?.requests.map((request) => (
+                  ) : data?.requests && data.requests.length > 0 ? (
+                    data.requests.map((request) => (
                       <tr key={request._id}>
-                        {isAdmin && (
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                            {`${request.employeeId.firstName} ${request.employeeId.lastName}`}
-                          </td>
-                        )}
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {format(new Date(request.date), 'dd/MM/yyyy')}
                         </td>
@@ -265,23 +228,13 @@ const Overtime = () => {
                              request.status === 'rejected' ? 'Từ chối' : 'Chờ duyệt'}
                           </span>
                         </td>
-                        {isAdmin && (
-                          <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                            {request.approvedBy ? 
-                              `${request.approvedBy.firstName} ${request.approvedBy.lastName}` : 
-                              '-'}
-                          </td>
-                        )}
+                        <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                          {request.approvedBy ? 
+                            `${request.approvedBy.firstName} ${request.approvedBy.lastName}` : 
+                            '-'}
+                        </td>
                         <td className="whitespace-nowrap px-3 py-4 text-right text-sm font-medium">
-                          {isAdmin && request.status === 'pending' && (
-                            <button
-                              onClick={() => approveMutation.mutate(request._id)}
-                              className="text-primary-600 hover:text-primary-900 mr-4"
-                            >
-                              Duyệt
-                            </button>
-                          )}
-                          {(isAdmin || request.employeeId._id === user?._id) && (
+                          {request.status === 'pending' && (
                             <>
                               <button
                                 onClick={() => handleEdit(request)}
@@ -300,6 +253,10 @@ const Overtime = () => {
                         </td>
                       </tr>
                     ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="text-center py-4">Không có dữ liệu</td>
+                    </tr>
                   )}
                 </tbody>
               </table>
@@ -327,4 +284,4 @@ const Overtime = () => {
   );
 };
 
-export default Overtime; 
+export default EmployeeOvertime; 
