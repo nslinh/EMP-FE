@@ -25,8 +25,8 @@ const DepartmentForm = ({ open, department, onClose, onSubmit }: DepartmentFormP
   const { data: managersData } = useQuery({
     queryKey: ['managers'],
     queryFn: async () => {
-      const response = await api.get('/employees', { params: { role: 'manager' } });
-      return response.data;
+      const response = await api.get('/employees');
+      return response.data?.employees || [];
     }
   });
 

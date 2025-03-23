@@ -140,35 +140,6 @@ const Login = () => {
                 )}
               </div>
             </div>
-
-            {/* Remember Me and Forgot Password */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  name="remember"
-                  type="checkbox"
-                  checked={formik.values.remember}
-                  onChange={formik.handleChange}
-                  className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 dark:border-gray-600 dark:focus:ring-primary-600"
-                />
-                <label
-                  htmlFor="remember"
-                  className="ml-2 block text-sm text-gray-900 dark:text-gray-300"
-                >
-                  Remember me
-                </label>
-              </div>
-
-              <div className="text-sm">
-                <a
-                  href="#"
-                  className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
-                >
-                  Forgot your password?
-                </a>
-              </div>
-            </div>
           </div>
 
           {/* Submit Button */}
@@ -208,17 +179,6 @@ const Login = () => {
             </button>
           </div>
         </form>
-
-        {/* Sign Up Link */}
-        <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-          Don't have an account?{' '}
-          <a
-            href="#"
-            className="font-medium text-primary-600 hover:text-primary-500 dark:text-primary-400"
-          >
-            Sign up
-          </a>
-        </p>
       </div>
     </div>
   );

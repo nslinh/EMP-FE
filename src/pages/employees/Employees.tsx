@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
@@ -11,6 +11,7 @@ import {
   MagnifyingGlassIcon,
   FunnelIcon
 } from '@heroicons/react/24/outline';
+// import useScreenData, { ScreenData } from '../../hooks/useScreenData';
 
 interface EmployeeFilters {
   search: string;
@@ -29,6 +30,7 @@ const Employees = () => {
   const api = useApi();
   const { success, error } = useNotification();
   const queryClient = useQueryClient();
+  // const { savedData, updateScreenData } = useScreenData();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);

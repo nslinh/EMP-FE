@@ -1,8 +1,11 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from './app/store';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { useEffect } from 'react';
+import authService from './services/authService';
+import { loginSuccess, saveLastScreen } from './features/auth/authSlice';
 
 // Layouts
 import AuthLayout from './layouts/AuthLayout';
@@ -24,10 +27,58 @@ import ActivityLogs from './pages/reports/ActivityLogs';
 import ActivityLogList from './pages/activityLog/ActivityLogList';
 import EmployeeOvertime from './pages/salary/EmployeeOvertime';
 
+// Component để theo dõi và lưu màn hình cuối cùng
+const LastScreenTracker = () => {
+  const location = useLocation();
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  useEffect(() => {
+    console.log("LastScreenTracker", isAuthenticated, location.pathname )
+    if (isAuthenticated && location.pathname !== '/login') {
+      dispatch(saveLastScreen({ path: location.pathname }));
+    }
+  }, [location.pathname, isAuthenticated, dispatch]);
+
+  return null;
+};
+
+// Component để khôi phục phiên làm việc
+const SessionRestorer = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
+
+  useEffect(() => {
+    const restoreSession = () => {
+      const savedState = authService.loadAuthState();
+      
+      if (savedState?.isAuthenticated && savedState.token && savedState.user) {
+        dispatch(loginSuccess({
+          user: savedState.user,
+          token: savedState.token,
+        }));
+
+        if (location.pathname === '/login' || location.pathname === '/') {
+          const targetPath = savedState.lastScreen?.path || '/dashboard';
+          navigate(targetPath, { replace: true });
+        }
+      }
+    };
+
+    restoreSession();
+  }, [dispatch, navigate, location.pathname]);
+
+  return null;
+};
+
 const App = () => {
   const { isAuthenticated, user } = useSelector((state: RootState) => state.auth);
+
   return (
     <Router>
+      <SessionRestorer />
+      <LastScreenTracker />
       <Routes>
         {/* Public routes */}
         <Route element={<AuthLayout />}>

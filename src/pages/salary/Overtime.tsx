@@ -11,6 +11,8 @@ import {
   TrashIcon,
   MagnifyingGlassIcon 
 } from '@heroicons/react/24/outline';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../app/store';
 
 interface User {
   _id: string;
@@ -77,6 +79,8 @@ const Overtime = () => {
     page: 1,
     limit: 10
   });
+
+  const { user: reduxUser } = useSelector((state: RootState) => state.auth);
 
   // Tính toán ngày bắt đầu và kết thúc của tháng được chọn
   const startDate = format(startOfMonth(new Date(year, month - 1)), 'yyyy-MM-dd');
@@ -180,12 +184,14 @@ const Overtime = () => {
               <option key={y} value={y}>{y}</option>
             ))}
           </select>
-          <button
-            onClick={() => setIsFormOpen(true)}
-            className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white"
-          >
-            Tạo mới
-          </button>
+          {reduxUser?.role === 'employee' && (
+            <button
+              onClick={() => setIsFormOpen(true)}
+              className="rounded-md bg-primary-600 px-3 py-2 text-sm font-semibold text-white"
+            >
+              Tạo mới
+            </button>
+          )}
         </div>
       </div>
 

@@ -101,7 +101,7 @@ const Departments = () => {
   const handleSubmit = async (values: Partial<Department>) => {
     if (selectedDepartment) {
       await updateMutation.mutateAsync({
-        id: selectedDepartment.id,
+        id: selectedDepartment._id,
         data: values,
       });
     } else {
@@ -111,7 +111,7 @@ const Departments = () => {
 
   const handleConfirmDelete = async () => {
     if (selectedDepartment) {
-      await deleteMutation.mutateAsync(selectedDepartment.id);
+      await deleteMutation.mutateAsync(selectedDepartment._id);
     }
   };
 
@@ -174,9 +174,9 @@ const Departments = () => {
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {department.description || '-'}
                     </td>
-                    <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {/* <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {department.manager?.fullName || '-'}
-                    </td>
+                    </td> */}
                     <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                       {department.employeeCount}
                     </td>

@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
+import { persistReducer, persistStore } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import authReducer from './slices/authSlice';
+import authReducer from '../features/auth/authSlice';
 import notificationReducer from './slices/notificationSlice';
 import themeReducer from './slices/themeSlice';
 
@@ -9,7 +9,7 @@ import themeReducer from './slices/themeSlice';
 const authPersistConfig = {
   key: 'auth',
   storage,
-  whitelist: ['user', 'token', 'isAuthenticated'] // Chỉ lưu các field cần thiết
+  whitelist: ['isAuthenticated', 'user', 'token', 'lastScreen']
 };
 
 // Cấu hình cho theme
@@ -29,9 +29,7 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE', 'persist/REGISTER'],
-      },
+      serializableCheck: false,
     }),
 });
 

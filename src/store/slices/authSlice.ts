@@ -51,6 +51,7 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.loading = false;
       state.error = null;
+      localStorage.clear()
     },
   },
 });
