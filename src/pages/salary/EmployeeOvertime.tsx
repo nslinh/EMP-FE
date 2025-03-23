@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo} from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
@@ -73,8 +73,7 @@ const EmployeeOvertime = () => {
       const queryString = new URLSearchParams({
         ...filters,
         startDate,
-        endDate,
-        employeeId: user?._id || ''
+        endDate
       }).toString();
       return api.get(`/overtime/requests?${queryString}`);
     },
@@ -125,6 +124,37 @@ const EmployeeOvertime = () => {
     await createMutation.mutateAsync(values);
   };
 
+   const summary = useMemo(() => {
+      if (!data) return null;
+  
+      const stats = data.reduce((acc, request) => {
+        return {
+          totalRequests: acc.totalRequests + 1,
+          approvedRequests: acc.approvedRequests + (request.status === 'approved' ? 1 : 0),
+          pendingRequests: acc.pendingRequests + (request.status === 'pending' ? 1 : 0),
+          rejectedRequests: acc.rejectedRequests + (request.status === 'rejected' ? 1 : 0),
+          totalHours: acc.totalHours + (request.status === 'approved' ? request.requestedHours : 0),
+        };
+      }, {
+        totalRequests: 0,
+        approvedRequests: 0,
+        pendingRequests: 0,
+        rejectedRequests: 0,
+        totalHours: 0,
+      });
+  
+      // Thêm các chỉ số phái sinh
+      return {
+        ...stats,
+        approvalRate: stats.totalRequests > 0 
+          ? Math.round((stats.approvedRequests / stats.totalRequests) * 100) 
+          : 0,
+        averageHours: stats.approvedRequests > 0 
+          ? Math.round((stats.totalHours / stats.approvedRequests) * 10) / 10 
+          : 0
+      };
+    }, [data]);
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -165,24 +195,24 @@ const EmployeeOvertime = () => {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng yêu cầu</h3>
-            <p className="mt-2 text-3xl font-semibold">{data?.summary?.totalRequests || 0}</p>
+            <p className="mt-2 text-3xl font-semibold">{summary?.totalRequests || 0}</p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Đã duyệt</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.summary?.approvedRequests || 0}
+              {summary?.approvedRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Chờ duyệt</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.summary?.pendingRequests || 0}
+              {summary?.pendingRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng giờ tăng ca</h3>
             <p className="mt-2 text-3xl font-semibold">
-              {data?.summary?.totalHours || 0}h
+              {summary?.totalHours || 0}h
             </p>
           </div>
         </div>
@@ -206,8 +236,8 @@ const EmployeeOvertime = () => {
                     <tr>
                       <td colSpan={6} className="text-center py-4">Đang tải...</td>
                     </tr>
-                  ) : data?.requests && data.requests.length > 0 ? (
-                    data.requests.map((request) => (
+                  ) : data && data.length > 0 ? (
+                    data.map((request) => (
                       <tr key={request._id}>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {format(new Date(request.date), 'dd/MM/yyyy')}

@@ -85,7 +85,7 @@ const Overtime = () => {
         ...filters,
         startDate,
         endDate,
-        employeeId: isAdmin ? undefined : user?._id
+        // employeeId: isAdmin ? undefined : user?._id
       };
       return api.get('/overtime/requests', { params });
     },
@@ -284,7 +284,7 @@ const Overtime = () => {
                       <tr key={request._id}>
                         {isAdmin && (
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                            {`${request.employeeId.id}`}
+                            {`${request.employeeId.fullName}`}
                           </td>
                         )}
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -309,7 +309,7 @@ const Overtime = () => {
                         {isAdmin && (
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             {request.approvedBy ? 
-                              `${request.approvedBy.id}` : 
+                              `${request.approvedBy.fullName}` : 
                               '-'}
                           </td>
                         )}
