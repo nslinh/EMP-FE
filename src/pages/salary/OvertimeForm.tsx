@@ -18,7 +18,7 @@ interface OvertimeFormProps {
 
 const validationSchema = Yup.object({
   date: Yup.date()
-    .min(new Date(), 'Ngày làm thêm không thể trong quá khứ')
+    .min(new Date(Date.now() - 86400000), 'Ngày làm thêm không thể trong quá khứ')
     .required('Ngày làm thêm là bắt buộc'),
   requestedHours: Yup.number()
     .min(1, 'Số giờ phải lớn hơn 0')
