@@ -260,7 +260,7 @@ const EmployeeOvertime = () => {
                         </td>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {request.approvedBy ? 
-                            `${request.approvedBy.firstName} ${request.approvedBy.fullName}` : 
+                            `${request.approvedBy.fullName}` : 
                             '-'}
                         </td>
                         {/* <td className="whitespace-nowrap px-3 py-4 text-right text-sm font-medium">
