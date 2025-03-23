@@ -11,12 +11,8 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Ensure environment variables are available
-ARG VITE_MODE=production
-ENV VITE_MODE=$VITE_MODE
-
 # Build the React Vite project with specified mode
-RUN npm run build -- --mode $VITE_MODE
+RUN npm run build
 
 # Stage 2: Nginx Serve Stage
 FROM nginx:1.27.4-alpine
