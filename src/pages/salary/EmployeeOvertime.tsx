@@ -198,7 +198,7 @@ const EmployeeOvertime = () => {
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Lý do</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Trạng thái</th>
                     <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Người duyệt</th>
-                    <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Thao tác</th>
+                    {/* <th className="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Thao tác</th> */}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
@@ -233,7 +233,7 @@ const EmployeeOvertime = () => {
                             `${request.approvedBy.firstName} ${request.approvedBy.lastName}` : 
                             '-'}
                         </td>
-                        <td className="whitespace-nowrap px-3 py-4 text-right text-sm font-medium">
+                        {/* <td className="whitespace-nowrap px-3 py-4 text-right text-sm font-medium">
                           {request.status === 'pending' && (
                             <>
                               <button
@@ -250,7 +250,7 @@ const EmployeeOvertime = () => {
                               </button>
                             </>
                           )}
-                        </td>
+                        </td> */}
                       </tr>
                     ))
                   ) : (
