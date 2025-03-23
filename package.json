@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "ESLINT_NO_DEV_ERRORS=true tsc -b --noEmit && vite build || true",
+    "build": "VITE_CJS_IGNORE_WARNING=true ESLINT_NO_DEV_ERRORS=true tsc -b --noEmit && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
