@@ -95,7 +95,7 @@ const DepartmentForm = ({ open, department, onClose, onSubmit }: DepartmentFormP
                       />
                     </div>
 
-                    <div>
+                    {/* <div>
                       <label htmlFor="managerId" className="block text-sm font-medium text-gray-700">
                         Quản lý
                       </label>
@@ -109,8 +109,8 @@ const DepartmentForm = ({ open, department, onClose, onSubmit }: DepartmentFormP
                             {manager.fullName}
                           </option>
                         ))}
-                      </select>
-                    </div>
+                      </select> 
+                    </div>*/}
                   </div>
                 </div>
 

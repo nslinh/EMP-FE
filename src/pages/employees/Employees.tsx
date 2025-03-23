@@ -284,13 +284,12 @@ const Employees = () => {
               <tr key={employee._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    {employee.avatar ? (
+                    {employee.avatarUrl ? (
                       <img
-                        src={employee.avatar}
+                        src={employee.avatarUrl}
                         alt={`Avatar of ${employee.fullName}`}
                         className="h-10 w-10 rounded-full object-cover"
                         onError={(e) => {
-                          // Fallback khi ảnh lỗi
                           (e.target as HTMLImageElement).src = 'https://www.gravatar.com/avatar/?d=mp';
                         }}
                       />

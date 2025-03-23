@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useFormik } from 'formik';
+import axios from 'axios';
 import * as Yup from 'yup';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
@@ -14,7 +15,7 @@ interface ChangePasswordValues {
 }
 
 const Profile = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const { user, token } = useSelector((state: RootState) => state.auth);
   const api = useApi();
   const { success, error } = useNotification();
   const [isUploading, setIsUploading] = useState(false);
@@ -24,12 +25,13 @@ const Profile = () => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('avatar', file);
-      const response = await api.post('/employees/avatar', formData, {
+      const response = await axios.post(import.meta.env.VITE_API_URL +'/employees/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
         },
       });
-      return response.avatarUrl;
+      return response.data?.avatarUrl;
     },
     onSuccess: () => {
       success('Avatar updated successfully');
@@ -51,7 +53,8 @@ const Profile = () => {
     try {
       setIsUploading(true);
       await uploadAvatarMutation.mutateAsync(file);
-    } finally {
+    } catch (err) {console.log(err)}
+    finally {
       setIsUploading(false);
     }
   };
@@ -114,7 +117,7 @@ const Profile = () => {
               <div className="flex flex-col items-center">
                 <div className="relative">
                   <img
-                    src={user?.avatar || 'https://img.freepik.com/free-psd/3d-render-avatar-character_23-2150611731.jpg?semt=ais_hybrid'}
+                    src={user?.avatarUrl || 'https://img.freepik.com/free-psd/3d-render-avatar-character_23-2150611731.jpg?semt=ais_hybrid'}
                     alt={user?.name}
                     className="h-32 w-32 rounded-full object-cover"
                   />

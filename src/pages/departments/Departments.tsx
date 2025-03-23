@@ -154,9 +154,9 @@ const Departments = () => {
                   <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Mô tả
                   </th>
-                  <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  {/* <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Quản lý
-                  </th>
+                  </th> */}
                   <th className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Số nhân viên
                   </th>

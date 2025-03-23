@@ -70,12 +70,11 @@ const Statistics = () => {
       }
 
       // Gọi API để lấy file
-      const response = await axios.get(`/statistics/export?${queryParams}`, {
+      const response = await axios.get(import.meta.env.VITE_API_URL +`/statistics/export?${queryParams}`, {
         responseType: "blob"
       });
       console.log("responseresponseresponse", response)
       let fileName = `report-${params.type}-${new Date().toISOString().split('T')[0]}.${params.format === 'excel' ? 'xlsx' : 'pdf'}`;
-      // Tạo URL và kích hoạt tải xuống
       const url = window.URL.createObjectURL(response.data)
       const link = document.createElement('a');
       link.href = url;
