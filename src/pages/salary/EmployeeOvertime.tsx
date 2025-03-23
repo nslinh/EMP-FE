@@ -206,8 +206,8 @@ const EmployeeOvertime = () => {
                     <tr>
                       <td colSpan={6} className="text-center py-4">Đang tải...</td>
                     </tr>
-                  ) : data?.requests && data.requests.length > 0 ? (
-                    data.requests.map((request) => (
+                  ) : data && data.length > 0 ? (
+                    data.map((request) => (
                       <tr key={request._id}>
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                           {format(new Date(request.date), 'dd/MM/yyyy')}
