@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useApi } from '../../hooks/useApi';
 import { useNotification } from '../../hooks/useNotification';
@@ -40,13 +40,6 @@ interface OvertimeRequest {
 
 interface OvertimeResponse {
   requests: OvertimeRequest[];
-  summary: {
-    totalRequests: number;
-    approvedRequests: number;
-    pendingRequests: number;
-    rejectedRequests: number;
-    totalHours: number;
-  };
   pagination: {
     total: number;
     page: number;
@@ -157,6 +150,38 @@ const Overtime = () => {
     await createMutation.mutateAsync(values);
   };
 
+  // Tính toán summary từ data.requests
+  const summary = useMemo(() => {
+    if (!data) return null;
+
+    const stats = data.reduce((acc, request) => {
+      return {
+        totalRequests: acc.totalRequests + 1,
+        approvedRequests: acc.approvedRequests + (request.status === 'approved' ? 1 : 0),
+        pendingRequests: acc.pendingRequests + (request.status === 'pending' ? 1 : 0),
+        rejectedRequests: acc.rejectedRequests + (request.status === 'rejected' ? 1 : 0),
+        totalHours: acc.totalHours + (request.status === 'approved' ? request.requestedHours : 0),
+      };
+    }, {
+      totalRequests: 0,
+      approvedRequests: 0,
+      pendingRequests: 0,
+      rejectedRequests: 0,
+      totalHours: 0,
+    });
+
+    // Thêm các chỉ số phái sinh
+    return {
+      ...stats,
+      approvalRate: stats.totalRequests > 0 
+        ? Math.round((stats.approvedRequests / stats.totalRequests) * 100) 
+        : 0,
+      averageHours: stats.approvedRequests > 0 
+        ? Math.round((stats.totalHours / stats.approvedRequests) * 10) / 10 
+        : 0
+    };
+  }, [data]);
+
   return (
     <div className="px-4 sm:px-6 lg:px-8">
       <div className="sm:flex sm:items-center">
@@ -199,24 +224,33 @@ const Overtime = () => {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng yêu cầu</h3>
-            <p className="mt-2 text-3xl font-semibold">{data?.summary?.totalRequests || 0}</p>
+            <p className="mt-2 text-3xl font-semibold">{summary?.totalRequests || 0}</p>
+            <p className="mt-1 text-sm text-gray-500">
+              Tỷ lệ duyệt: <span className="font-medium text-gray-900">{summary?.approvalRate || 0}%</span>
+            </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Đã duyệt</h3>
-            <p className="mt-2 text-3xl font-semibold">
-              {data?.summary?.approvedRequests || 0}
+            <p className="mt-2 text-3xl font-semibold text-green-600">
+              {summary?.approvedRequests || 0}
+            </p>
+            <p className="mt-1 text-sm text-gray-500">
+              TB: <span className="font-medium text-gray-900">{summary?.averageHours || 0}h/yêu cầu</span>
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Chờ duyệt</h3>
-            <p className="mt-2 text-3xl font-semibold">
-              {data?.summary?.pendingRequests || 0}
+            <p className="mt-2 text-3xl font-semibold text-yellow-600">
+              {summary?.pendingRequests || 0}
             </p>
           </div>
           <div className="bg-white shadow rounded-lg p-6">
             <h3 className="text-sm font-medium text-gray-500">Tổng giờ tăng ca</h3>
-            <p className="mt-2 text-3xl font-semibold">
-              {data?.summary?.totalHours || 0}h
+            <p className="mt-2 text-3xl font-semibold text-blue-600">
+              {summary?.totalHours || 0}h
+            </p>
+            <p className="mt-1 text-sm text-red-500">
+              Từ chối: {summary?.rejectedRequests || 0} yêu cầu
             </p>
           </div>
         </div>
@@ -245,12 +279,12 @@ const Overtime = () => {
                     <tr>
                       <td colSpan={isAdmin ? 7 : 5} className="text-center py-4">Đang tải...</td>
                     </tr>
-                  ) : data?.requests && data.requests.length > 0 ? (
-                    data.requests.map((request) => (
+                  ) : data && data.length > 0 ? (
+                    data.map((request) => (
                       <tr key={request._id}>
                         {isAdmin && (
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                            {`${request.employeeId.firstName} ${request.employeeId.lastName}`}
+                            {`${request.employeeId.id}`}
                           </td>
                         )}
                         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -275,7 +309,7 @@ const Overtime = () => {
                         {isAdmin && (
                           <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                             {request.approvedBy ? 
-                              `${request.approvedBy.firstName} ${request.approvedBy.lastName}` : 
+                              `${request.approvedBy.id}` : 
                               '-'}
                           </td>
                         )}
@@ -296,12 +330,12 @@ const Overtime = () => {
                               >
                                 <PencilIcon className="h-5 w-5" />
                               </button>
-                              <button
+                              {/* <button
                                 onClick={() => handleDelete(request)}
                                 className="text-red-600 hover:text-red-900"
                               >
                                 <TrashIcon className="h-5 w-5" />
-                              </button>
+                              </button> */}
                             </>
                           )}
                         </td>

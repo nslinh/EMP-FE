@@ -260,6 +260,9 @@ const Employees = () => {
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                Avatar
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Họ tên
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
@@ -279,6 +282,27 @@ const Employees = () => {
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {data?.employees.map((employee) => (
               <tr key={employee._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    {employee.avatar ? (
+                      <img
+                        src={employee.avatar}
+                        alt={`Avatar of ${employee.fullName}`}
+                        className="h-10 w-10 rounded-full object-cover"
+                        onError={(e) => {
+                          // Fallback khi ảnh lỗi
+                          (e.target as HTMLImageElement).src = 'https://www.gravatar.com/avatar/?d=mp';
+                        }}
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-600 flex items-center justify-center">
+                        <span className="text-lg font-medium text-gray-600 dark:text-gray-300">
+                          {employee.fullName.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {employee.fullName}
                 </td>
